@@ -133,7 +133,6 @@ def Extracao_Fila(tolken):
                 Fila = resultado_json[0]['_value']
                 break
     return Fila
-
 def Get_Last_Data(Pausa,Logados,Disponivel,Em_atendimento,Fila):
     data_hoje = datetime.now()
     ultimo_update = f"{data_hoje}"
