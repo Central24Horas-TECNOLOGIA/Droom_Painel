@@ -19,14 +19,14 @@ def Request(data_hoje,Fila,em_pausa,logados,disponivel,em_atendimento):
     url_request = "http://192.168.5.62:8091/BCMS_WEB/api/v1/Integracao/ReportTempoReal/Gravar"
     try:
         '''REQUEST VOZ '''
-        DROOM = '{"Operacao": {"Constante": "RIO_CORPORATE"}, "DataRegistro": "' + f'{data_hoje}' + '", "DataEvento": "' + f'{data_hoje}' + '", "Grupo": "12", "NomeGrupo": "DAVITA", "ChamadaEspera": "' + f'{Fila}' + '", "NivelServico": "0", "Logado": "' + f'{logados}' + '", "Disponivel": "' + f'{disponivel}' + '", "Acd": "' + f'{em_atendimento}' + '", "Acw": "' + f'{em_pausa}' + '", "Aux": "0", "SaidaRamal": "0", "Outro": "0", "ChamadaAntiga": "0",\"Itens\": []}'
+        DROOM = '{"Operacao": {"Constante": "RIO_CORPORATE"}, "DataRegistro": "' + f'{data_hoje}' + '", "DataEvento": "' + f'{data_hoje}' + '", "Grupo": "100", "NomeGrupo": "DROOM", "ChamadaEspera": "' + f'{Fila}' + '", "NivelServico": "0", "Logado": "' + f'{logados}' + '", "Disponivel": "' + f'{disponivel}' + '", "Acd": "' + f'{em_atendimento}' + '", "Acw": "' + f'{em_pausa}' + '", "Aux": "0", "SaidaRamal": "0", "Outro": "0", "ChamadaAntiga": "0",\"Itens\": []}'
         headers = {
           'content-type': "application/json",
           'cache-control': "no-cache",
           'postman-token': "9e904e79-6ef2-4feb-416c-e1c2b410be09"
         }
-        requests.request("POST", url_request, data=DROOM, headers=headers)
-        print(f"Droom Request - {response_davita.status_code} ")
+        DROOM_request = requests.request("POST", url_request, data=DROOM, headers=headers)
+        print(f"Droom Request - {DROOM_request.status_code} ")
         print(" ")
     except Exception as A:
             print(A)
@@ -134,6 +134,16 @@ def Extracao_Fila(tolken):
                 break
     return Fila
 
+def Get_Last_Data(Pausa,Logados,Disponivel,Em_atendimento,Fila):
+    data_hoje = datetime.now()
+    ultimo_update = f"{data_hoje}"
+    ultima_Pausa = Pausa
+    ultimo_Logado = Logados
+    ultimo_Disponivel = Disponivel
+    ultimo_Em_Atendimento = Em_atendimento
+    ultima_Fila = Fila
+    return ultima_Pausa,ultimo_Logado,ultimo_Disponivel,ultimo_Em_Atendimento,ultimo_update, ultima_Fila
+
 # DICIONÁRIO
 TALK_DIC = {
     "nome_fila": "live_contacts_in_queue",
@@ -156,23 +166,40 @@ TALK_DIC = {
     "id_ligacoes_total": "b7c50e0ae810452181a1d7c7f14cf8ba",
 }
 
-
-
 i = True
 while i ==  True:
     try:
+            data_atual = data_formatada()
             token  = Requisica0_Token()
             Pausa, Logados, Disponivel, Em_atendimento = Extracao_Usuarios(token)
             Fila = Extracao_Fila(token)
-            time.sleep(5)
+            ultima_Pausa, ultimo_Logado, ultimo_Disponivel, ultimo_Em_Atendimento, ultimo_update, ultima_Fila = Get_Last_Data(Pausa,Logados,Disponivel,Em_atendimento, Fila)
             print(f'Em pausa: {Pausa}')
             print(f'Logados: {Logados}')
             print(f'Disponível: {Disponivel}')
-            print(f"Em atendimento:{Em_atendimento}")
+            print(f"Em atendimento: {Em_atendimento}")
             print(f"Fila: {Fila}")
-            # Request(data_hoje,Fila,em_pausa,logados,disponivel,em_atendimento)
+            print(f" ")
+            Request(data_atual, Fila, Pausa, Logados, Disponivel, Em_atendimento)
+            time.sleep(10)
+
     except:
         tempo = 30
-        print("Aguardando", tempo, "segundos antes de tentar novamente...")
+        Pausa = ultima_Pausa
+        Logados = ultimo_Logado
+        Disponivel = ultimo_Disponivel
+        Em_atendimento = ultimo_Em_Atendimento
+        Fila = ultima_Fila
+        data_atual = ultimo_update
+
+        print("Aguardando....", tempo)
+        print("ULTIMO UPDATE :", ultimo_update)
+        print("Ultima 'Fila':", ultima_Fila)
+        print(f"Ultima 'Pausa': ", ultima_Pausa)
+        print(f"Ultimo 'Logados': ", ultimo_Logado)
+        print(f"Ultimo 'Disponivel': ", ultimo_Disponivel)
+        print(f"Ultimo 'Em atendimento': ", ultimo_Em_Atendimento)
+        print("")
+        Request(data_atual, Fila, Pausa, Logados, Disponivel, Em_atendimento)
         time.sleep(tempo)
         tempo += 60
